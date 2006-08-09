@@ -1,0 +1,9 @@
+TODO:
+
+version 0.0.1:
+- get configure
+- play back of recorded files
+- support for different webcam resolutions.
+- do not use ffmpeg if ogg/theora/vorbis is the only codec when installing
+- adjustable video/audio syncronisation (actually it might be depending on hardware)
+- many more

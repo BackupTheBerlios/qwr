@@ -1,0 +1,42 @@
+Hi all,
+
+this is a real alpha version, so many things does not work:
+
+- no nice configure script
+- no playback of recorded files 
+
+what do you need to start actually:
+
+- ffmpeg:
+  this could be done easily by typing:
+  # ./getffmpeg.sh
+
+You need the following packages (development)
+(They are usually available on your distribution)
+
+- jack audio connection kit (http://jackaudio.org)
+- ogg, theora, vorbis       (http://www.xiph.org)
+- qt3                       (http://www.trolltech.com)
+
+The following things might not be integrated:
+- webcam and driver (video4linux/video4linux2) for that cam
+  (make a google search for the usb ID - use lsusb to find out)
+
+who to get it run:
+
+cd ./GUI
+
+The makefile is very easy, however, some paths might not be at the place:
+search for
+- uic
+- moc
+and the header files of the above mentioned packages and replace the 
+paths if neccessary
+
+if you have further questions:
+Ask us
+
+- have fun
+Suki, Yorn
+
+
