@@ -44,77 +44,6 @@
             <string>v4l2 Plugin</string>
         </property>
     </widget>
-    <widget class="QComboBox">
-        <item>
-            <property name="text">
-                <string>mp2</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>mp3</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>ac3</string>
-            </property>
-        </item>
-        <property name="name">
-            <cstring>AudCodecCombo</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>10</x>
-                <y>210</y>
-                <width>121</width>
-                <height>31</height>
-            </rect>
-        </property>
-    </widget>
-    <widget class="QComboBox">
-        <item>
-            <property name="text">
-                <string>mpeg1</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>mpeg2</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>mpeg4</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>realvideo</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>quicktime</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>mpeg4</string>
-            </property>
-        </item>
-        <property name="name">
-            <cstring>vidCodecCombo</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>10</x>
-                <y>140</y>
-                <width>120</width>
-                <height>31</height>
-            </rect>
-        </property>
-    </widget>
     <widget class="QLabel">
         <property name="name">
             <cstring>textLabel2_2</cstring>
@@ -316,6 +245,42 @@
         </property>
         <property name="toggleButton">
             <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="QComboBox">
+        <item>
+            <property name="text">
+                <string>vorbis</string>
+            </property>
+        </item>
+        <property name="name">
+            <cstring>AudCodecCombo</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>210</y>
+                <width>121</width>
+                <height>31</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QComboBox">
+        <item>
+            <property name="text">
+                <string>theora</string>
+            </property>
+        </item>
+        <property name="name">
+            <cstring>vidCodecCombo</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>140</y>
+                <width>120</width>
+                <height>31</height>
+            </rect>
         </property>
     </widget>
 </widget>
