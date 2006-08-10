@@ -1,5 +1,7 @@
 Hi all,
 
+PLEASE READ THESE LINES CAREFULLY
+
 this is a real alpha version, so many things does not work:
 
 - no nice configure script
@@ -24,7 +26,7 @@ The following things might not be integrated:
 
 who to get it run:
 
-cd ./GUI
+# cd ./GUI
 
 The makefile is very easy, however, some paths might not be at the place:
 search for
@@ -32,6 +34,15 @@ search for
 - moc
 and the header files of the above mentioned packages and replace the 
 paths if neccessary
+
+to start the application, you have to start jackd before (the next line will 
+start a jackd server, that connects to alsa and supplies a sample rate of 16 kHz):
+
+# jackd -dalsa -r16000 
+
+then start
+
+# ./QTWebRec
 
 if you have further questions:
 Ask us
