@@ -1,5 +1,5 @@
 /*
- * video for linux 2 interface
+ * video for linux interface
  * Copyright (C) 2005-2006 Sulejman Mundzic 
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,14 +36,6 @@
 
 #include"videoCapture.h"
 
-/*
-#include <string>
-#include"pixmapFormat.h"
-#include"video-struct.h"
-#include"VideoFrame.h"
-*/
-
-
 
 class v4l2Capture : public VideoCapture
 {
@@ -74,27 +66,24 @@ class v4l2Capture : public VideoCapture
     void   queue_all(void);
 
  public:
-    v4l2Capture();
+    v4l2Capture(char const* device = "/dev/video0");
     ~v4l2Capture();
-    virtual void   init();
 
     /* open/close */
-    virtual int    open(char *device);
+    virtual int    open();
     virtual int    close();
 
     /* attributes */
-    virtual char*  get_devname();
-    virtual int    can_capture();
-    virtual void   get_device_capabilities();
-    
+    virtual char const*  get_devname();
+    virtual void         get_device_capabilities();
     
     /* capture */
-    virtual int          setformat(PixmapFormat& in_fmt);
+    virtual int          setFormat(PixmapFormat& in_fmt);
     virtual void         setPictureParams(int colour, int brightness,
 					  int hue,    int contrast);
-    virtual int          startvideo(int fps, unsigned int buffers);
-    virtual void         stopvideo();
-    virtual VideoFrame*  nextframe(); /* video frame */
+    virtual int          startVideo(int fps, unsigned int buffers);
+    virtual void         stopVideo();
+    virtual VideoFrame*  nextFrame();
 };
 
 

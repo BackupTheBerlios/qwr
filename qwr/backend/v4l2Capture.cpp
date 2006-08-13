@@ -1,5 +1,5 @@
 /*
- * video for linux 2 interface
+ * video for linux interface
  * Copyright (C) 2005-2006 Sulejman Mundzic 
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,8 +18,9 @@
  *
  */
 
-#include"v4l2Capture.h"
+#include <iostream>
 
+#include "v4l2Capture.h"
 
 int v4l2Capture::xioctl(int fd, int cmd, void *arg, int mayfail)
 {
@@ -31,49 +32,52 @@ int v4l2Capture::xioctl(int fd, int cmd, void *arg, int mayfail)
     if (mayfail && errno == mayfail)
 	return rc;
 //  print_ioctl(stderr,ioctls_v4l2,PREFIX,cmd,arg);
-    fprintf(stderr,": %s\n",(rc == 0) ? "ok" : strerror(errno));
+//    fprintf(stderr,": %s\n",(rc == 0) ? "ok" : strerror(errno));
     return rc;
 }
 
 
-v4l2Capture::v4l2Capture()
-//    : fd(0)
+v4l2Capture::v4l2Capture(char const* device)
+        : VideoCapture(device)
 {
     fprintf(stderr, "v4l2Capture::v4l2Capture()\n");
-    devname = "/dev/video0";
-    fd = 0;
+    devname = device;
+    fd = -1;
+/*
+    fd = -1;
+    method = READ_IO_METHOD;
+    queued   = 0;
+    dequeued = 0;
+*/
 }
 
 
 v4l2Capture::~v4l2Capture()
 {
     fprintf(stderr, "v4l2Capture::~v4l2Capture()\n");
-
-   
 }
 
-void v4l2Capture::init()
-{
-    fprintf(stderr, "v4l2Capture::init()\n");
-    get_device_capabilities();
-}
 
 void v4l2Capture::get_device_capabilities()
 {
-    fprintf(stderr, "v4l2Capture::get_device_capabilities()\n");
+  //    fprintf(stderr, "v4l2Capture::get_device_capabilities()\n");
 
     for (nfmts = 0; nfmts < max_format; nfmts++)
     {
 	fmt[nfmts].index = nfmts;
 	fmt[nfmts].type  = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	if (-1 == xioctl(fd, VIDIOC_ENUM_FMT, &fmt[nfmts], EINVAL))
+	if (-1 == xioctl(fd, VIDIOC_ENUM_FMT, &fmt[nfmts], EINVAL)) {
+	  std::cerr<<"v4l2Capture::get_device_capabilities: ioctl failed\n";
 	    break;
+	}
+	/*
 	fprintf(stderr, "fmt[%d] = %s \n", nfmts, fmt[nfmts].description);
 	fprintf(stderr, "fmt[%d] = %d \n", nfmts, fmt[nfmts].pixelformat);
 	if (fmt[nfmts].pixelformat == V4L2_PIX_FMT_YVU420)
 	    fprintf(stderr, "V4L2_PIX_FMT_YVU420 found \n");
 	if (fmt[nfmts].pixelformat == V4L2_PIX_FMT_YUYV)
-	    fprintf(stderr, "V4L2_PIX_FMT_YUYV found \n");
+       	    fprintf(stderr, "V4L2_PIX_FMT_YUYV found \n");
+	*/
     }
 
     streamparm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -83,31 +87,38 @@ void v4l2Capture::get_device_capabilities()
 void v4l2Capture::setPictureParams(int colour, int brightness,
 				   int hue,    int contrast)
 {
-    fprintf(stderr, "v4l2Capture::setPictureParams()\n");
-
+  //    fprintf(stderr, "v4l2Capture::setPictureParams() - not implemented \n");
+  std::cerr << "v4l2Capture::setPictureParams() - not implemented \n";
 }
 
 /* open/close */
-int  v4l2Capture::open(char *device)
+int  v4l2Capture::open()
 {
-    fprintf(stderr, "v4l2Capture::open()\n");
+  //    fprintf(stderr, "v4l2Capture::open()\n");
 
+/*
     if (fd != 0)
     {
 //	startvideo(-1, 2);
 	return fd;
     }
+*/
 
-    if (-1 == (fd = ::open(device, O_RDWR))) {
-	fprintf(stderr,"v4l2: open %s: %s\n",device,strerror(errno));
+    if ((fd = ::open(devname, O_RDWR)) == -1)
+    {
+	perror("v4l2Capture::open failed");
 	goto err;
     }
 
-    if (-1 == xioctl(fd,VIDIOC_QUERYCAP,&cap,EINVAL))
+    if (xioctl(fd,VIDIOC_QUERYCAP,&cap,EINVAL) == -1)
+    {
+	fprintf(stderr,"v4l2: open %s: %s\n",devname,strerror(errno));
 	goto err;
+    }
 
     fcntl(fd,F_SETFD,FD_CLOEXEC);
 
+    /*
     fprintf(stderr,"v4l2: device info:\n"
 	    "  %s %d.%d.%d / %s @ %s\n",
 	    cap.driver,
@@ -115,42 +126,31 @@ int  v4l2Capture::open(char *device)
 	    (cap.version >>  8) & 0xff,
 	    cap.version         & 0xff,
 	    cap.card,cap.bus_info);
+    */
 
     get_device_capabilities();
 
-    return 0;
+    return fd;
 
  err:
     fprintf(stderr,"drv: opening error \n");
     if (fd != -1)
-	close();
+	::close(fd);
     return -1;
 }
 
 
-
-
 /* attributes */
-char* v4l2Capture::get_devname()
+char const* v4l2Capture::get_devname()
 {
-    fprintf(stderr, "v4l2Capture::get_devname()\n");
+  //    fprintf(stderr, "v4l2Capture::get_devname()\n");
     return devname; 
 }
 
-int v4l2Capture::can_capture()
-{
-    fprintf(stderr, "v4l2Capture::can_capture()\n");
-    int ret = 0;
-
-    if (cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
-	ret = 1;
-    return ret;
-}
-
 /* capture */
-int v4l2Capture::setformat(PixmapFormat& in_fmt)
+int v4l2Capture::setFormat(PixmapFormat& in_fmt)
 {
-    fprintf(stderr, "v4l2Capture::setformat()\n");
+  //    fprintf(stderr, "v4l2Capture::setformat()\n");
     
     memset (&fmt_v4l2, 0, sizeof (fmt_v4l2));
 
@@ -161,6 +161,7 @@ int v4l2Capture::setformat(PixmapFormat& in_fmt)
     fmt_v4l2.fmt.pix.field        = V4L2_FIELD_ANY;
     fmt_v4l2.fmt.pix.bytesperline = 0;
 
+    /*
     fprintf(stderr,"v4l2VideoLayer: \n"
 	    "fmt_id    = %d \n"
 	    "width     = %d \n"
@@ -170,18 +171,18 @@ int v4l2Capture::setformat(PixmapFormat& in_fmt)
 	    in_fmt.id(),
 	    in_fmt.width(), in_fmt.height(),
 	    in_fmt.linesize());
-    
+    */
 
     if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt_v4l2, EINVAL))
 	return -1;
 
-    fprintf(stderr,"format set \n");
+    //    fprintf(stderr,"format set \n");
 
 
     in_fmt = curr_fmt.setFormat(PixmapFormat::PIXFMT_YUV420P,
 				fmt_v4l2.fmt.pix.width,
 				fmt_v4l2.fmt.pix.height);
-
+    /*
     fprintf(stderr,"v4l2VideoLayer: \n"
 	    "fmt_id    = %d \n"
 	    "width     = %d \n"
@@ -199,7 +200,7 @@ int v4l2Capture::setformat(PixmapFormat& in_fmt)
 	    (fmt_v4l2.fmt.pix.pixelformat >> 16) & 0xff,
 	    (fmt_v4l2.fmt.pix.pixelformat >> 24) & 0xff,
 	    fmt_v4l2.fmt.pix.sizeimage);
-
+    */
     return 0;
 }
 
@@ -207,7 +208,7 @@ int v4l2Capture::setformat(PixmapFormat& in_fmt)
 
 int v4l2Capture::queue_buffer(void)
 {
-    fprintf(stderr, "v4l2Capture::queue_buffer()\n");
+  //    fprintf(stderr, "v4l2Capture::queue_buffer()\n");
     int frame = queue % reqbufs.count;
     int rc;
 
@@ -229,7 +230,7 @@ int v4l2Capture::queue_buffer(void)
 
 void v4l2Capture::queue_all(void)
 {
-    fprintf(stderr, "v4l2Capture::queue_all()\n");
+  //    fprintf(stderr, "v4l2Capture::queue_all()\n");
     for (;;)
     {
 	if (queue - waiton >= reqbufs.count)
@@ -239,26 +240,21 @@ void v4l2Capture::queue_all(void)
     }
 }
 
-int v4l2Capture::startvideo(int fps, unsigned int buffers)
+int v4l2Capture::startVideo(int fps, unsigned int buffers)
 {
     fprintf(stderr, "v4l2Capture::startvideo()\n");
 
-    if (0 != fps)
-    {
-//	fprintf(stderr,"startvideo: oops: fps!=0\n");
-    }
     fps   = fps;
-    first = 1;
     start = 0;
 
     if (!(cap.capabilities & V4L2_CAP_STREAMING))
     {
 	fprintf(stderr, "V4L2_CAP_STREAMING not supported \n");
 	/* think about returning the fd */ 
-	return 0;
+	return -1;
     }
 
-    fprintf(stderr,"v4l2Capture: start streaming \n");
+    //    fprintf(stderr,"v4l2Capture: start streaming \n");
     
     /* setup buffers */
     reqbufs.count  = buffers;
@@ -304,9 +300,9 @@ int v4l2Capture::startvideo(int fps, unsigned int buffers)
 
 
 
-struct VideoFrame* v4l2Capture::nextframe()
+struct VideoFrame* v4l2Capture::nextFrame()
 {
-    fprintf(stderr, "v4l2Capture::nextframe()\n");
+  //    fprintf(stderr, "v4l2Capture::nextframe()\n");
 
     struct VideoFrame *video_frame = NULL;
     int rc, frame = 0;
@@ -328,7 +324,19 @@ struct VideoFrame* v4l2Capture::nextframe()
 	frame = buf.index;
 	waiton++;
 	buf_v4l2[buf.index] = buf;
-	video_frame = &buf_me[frame];
+//	video_frame = &buf_me[frame];
+
+	video_frame = new VideoFrame();
+	if ( video_frame == NULL ) return NULL;
+	*video_frame = buf_me[frame];
+	video_frame->data_ptr = new unsigned char[buf_me[frame].fmt.size()];
+	if ( video_frame->data_ptr == NULL )
+	{
+	    delete video_frame;
+	    return NULL;
+	}
+	memcpy(video_frame->data_ptr, buf_me[frame].data_ptr,
+	       video_frame->fmt.size());
     }
     else
     {
@@ -337,7 +345,7 @@ struct VideoFrame* v4l2Capture::nextframe()
 	video_frame->fmt      = curr_fmt;
 	video_frame->data_ptr = (unsigned char*)malloc(curr_fmt.size());
 	rc = read(fd,video_frame->data_ptr,video_frame->fmt.size());
-	if (rc != video_frame->fmt.size())
+	if (rc != (int)video_frame->fmt.size())
 	{
 	    if (-1 == rc)
 	    {
@@ -345,37 +353,25 @@ struct VideoFrame* v4l2Capture::nextframe()
 	    }
 	    else
 	    {
-		fprintf(stderr, "read: rc=%d/size=%d\n",rc,curr_fmt.size());
+	      //  fprintf(stderr, "read: rc=%d/size=%d\n",rc,curr_fmt.size());
 	    }
 	    free(video_frame);
 	    return NULL;
 	}
     }
 
-    if (first) {
-	first = 0;
-	start = 0;
-    }
     return video_frame;
 }
 
 
-void v4l2Capture::stopvideo()
+void v4l2Capture::stopVideo()
 {
-    fprintf(stderr, "v4l2Capture::stopvideo()\n");
-
-
-    if (0 == fps)
-    {
-//	fprintf(stderr,"v4l2_stopvideo: oops: fps==0\n");
-    }
-    fps = 0;
-//  first = 0;
-//  start = 0;
+  //    fprintf(stderr, "v4l2Capture::stopVideo()\n");
 
     if (!(cap.capabilities & V4L2_CAP_STREAMING))
     {
-	fprintf(stderr, "V4L2_CAP_STREAMING not supported \n");
+      //	fprintf(stderr, "V4L2_CAP_STREAMING not supported \n");
+      std::cerr <<"V4L2_CAP_STREAMING not supported \n";
 	return;
     }
 
@@ -392,6 +388,7 @@ void v4l2Capture::stopvideo()
     for (unsigned int i = 0; i < reqbufs.count; i++)
     {
 //	print_bufinfo(&buf_v4l2[i]);
+//	fprintf(stderr,"freeing the buffer i = %d \n", i);
 	if (-1 == munmap(buf_me[i].data_ptr,buf_me[i].fmt.size()))
 	    perror("munmap");
     }
@@ -403,8 +400,13 @@ int v4l2Capture::close()
 {
     fprintf(stderr, "v4l2Capture::close()\n");
 
-    stopvideo();
-    ::close(fd);
-    fd = 0;
+//  stopVideo();
+//    fprintf(stderr, "v4l2Capture: fd = %d\n", fd);
+    if (::close(fd)<0)
+    {
+	perror("close failed");
+	return(fd = -1);
+    }
+    fd = -1;
     return 0;
 }

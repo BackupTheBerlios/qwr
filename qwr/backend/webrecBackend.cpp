@@ -90,11 +90,11 @@ bool WebrecBackend::startCaptureDevice()
 
   if (videoCaptureType == WebrecBackend::unknown) {
     videoCapture = new v4l2Capture();
-    if (videoCapture->open("/dev/video0") == -1)
+    if (videoCapture->open() == -1)
       {
 	delete videoCapture;
 	videoCapture = new v4lCapture();
-	if (videoCapture->open("/dev/video0") == -1)
+	if (videoCapture->open() == -1)
 	  {
 	    fprintf(stderr,"can not handeln capture \n");
 	    delete videoCapture; videoCapture = 0;
@@ -111,7 +111,7 @@ bool WebrecBackend::startCaptureDevice()
       videoCapture = new v4lCapture();
     if (videoCaptureType == WebrecBackend::v4l2)
       videoCapture = new v4l2Capture();
-    videoCapture->open("/dev/video0");
+    videoCapture->open();
   }
 
   if (videoCaptureType == WebrecBackend::unknown) {
@@ -127,14 +127,14 @@ bool WebrecBackend::startCaptureDevice()
 
   //  capture_format = PixmapFormat(PixmapFormat::PIXFMT_YUV420P, 320, 240);
   
-  if( videoCapture->setformat(capture_format) != 0) {
+  if( videoCapture->setFormat(capture_format) != 0) {
       fprintf(stderr,"capture format not supported \n");
       capture_format.print();
       return false;
     }
   capture_format.print();
   
-  if ((captureDesc = videoCapture->startvideo(-1,2)) == -1) {
+  if ((captureDesc = videoCapture->startVideo(-1,2)) == -1) {
     return false;
   }
 
@@ -158,7 +158,7 @@ void WebrecBackend::stopCaptureDevice()
 
   if (captureDesc) {
     std::cerr << "WebrecBackend::stopCaptureDevice: stop video capture\n";
-    videoCapture->stopvideo();
+    videoCapture->stopVideo();
     videoCapture->close();
     scheduler->disconnectDescriptor(captureDesc);
     captureDesc = 0;
@@ -279,15 +279,15 @@ void WebrecBackend::handleGuiMsg(Message* message)
   } break;
   
   case WebrecMessage::filename: {
-    std::cerr<<"WebrecBackend::handleGuiMsg: handle filename message <";
+    //    std::cerr<<"WebrecBackend::handleGuiMsg: handle filename message <";
     fileName = ((FileInfoMessage*)message)->filename;
-    std::cerr<<fileName<<">\n";
+    //    std::cerr<<fileName<<">\n";
   } break;
 
   case WebrecMessage::streamname: {
-    std::cerr<<"WebrecBackend::handleGuiMsg: handle streamname message <";
+    //    std::cerr<<"WebrecBackend::handleGuiMsg: handle streamname message <";
     streamName = ((StreamInfoMessage*)message)->streamname;
-    std::cerr<<streamName<<">\n";
+    //    std::cerr<<streamName<<">\n";
   } break;
   
   case WebrecMessage::codecInfo: {
@@ -316,7 +316,6 @@ void WebrecBackend::handleGuiMsg(Message* message)
 
 void WebrecBackend::handleVideoCapture()
 {
-
   if (captureDesc == 0) {
     fprintf(stderr,"video capture invalid state - returning \n");
     return;
@@ -335,7 +334,7 @@ void WebrecBackend::handleVideoCapture()
     tmpFrame = 0;
   }
 
-  tmpFrame = videoCapture->nextframe();
+  tmpFrame = videoCapture->nextFrame();
 
   //  std::cerr << "c";
 
@@ -500,7 +499,7 @@ void WebrecBackend::initStreamer(std::string streamname)
   struct hostent *h;
 
   if ((h=gethostbyname(url.c_str())) == NULL) {  // get the host info
-    herror("gethostbyname");
+    perror("gethostbyname");
     return;
   }
 
@@ -532,7 +531,7 @@ void WebrecBackend::initStreamer(std::string streamname)
 
 void WebrecBackend::handleCodecMessage(Message* message)
 {
-  static int counter = 0;
+  //  static int counter = 0;
   //  std::cerr <<"§";
   switch (message->getID()) {
 
@@ -548,46 +547,13 @@ void WebrecBackend::handleCodecMessage(Message* message)
 
     // run through the data and find a header
 
-    /*
-    for (unsigned int i=0; i<codecMessage->length;++i) {
-      if (strncmp(codecMessage->data+i, "OggS", 4)==0) {
-
-	oggHeader* header = (oggHeader*)(codecMessage->data+i);
-
-	std::cerr << header->ogg <<" ";
-	
-	if (header->pack_type)
-	  std::cerr << "fresh packet | ";
-	else
-	  std::cerr << "continued packet | ";
-    
-	if (header->page_type)
-	  std::cerr << "first page (bos) | ";
-	else 
-	  std::cerr << "not first | ";
-	
-	if (header->last)
-	  std::cerr << "last page | ";
-	else
-	  std::cerr << "not last page | ";
-	
-	std::cerr << " pos: "<<header->position;
-	std::cerr << " serial: "<<header->serial;
-	std::cerr << " pageNo: "<<header->pageNo;
-	std::cerr << " checksum: "<<header->checksum<<std::endl;
-      }
-    }
-*/
     
     if (filewrite)
       fwrite(codecMessage->data, 1, codecMessage->length, fileDesc);
     if (stream) {
-      unsigned int dataLength = codecMessage->length;
-      //TBD Error Handling
-      //      std::cerr << "len: "<<dataLength<<"\n";
-    
+      unsigned int dataLength = codecMessage->length;    
 
-      send(streamDesc,&dataLength, sizeof(unsigned int), 0);
+      //      send(streamDesc,&dataLength, sizeof(unsigned int), 0);
       send(streamDesc,codecMessage->data, codecMessage->length, 0);
     }
   } break;
@@ -595,53 +561,23 @@ void WebrecBackend::handleCodecMessage(Message* message)
   case CodecMessage::decodedHeader: {
     CodecDataMessage* codecMessage = static_cast<CodecDataMessage*>(message);
 
-    // run through the data and find a header
-
-    /*
-    for (unsigned int i=0; i<codecMessage->length;++i) {
-      if (strncmp(codecMessage->data+i, "OggS", 4) == 0) {
-
-	oggHeader* header = (oggHeader*)(codecMessage->data+i);
-
-	std::cerr << header->ogg <<" ";
-	
-	if (header->pack_type)
-	  std::cerr << "fresh packet | ";
-	else
-	  std::cerr << "continued packet | ";
-    
-	if (header->page_type)
-	  std::cerr << "first page (bos) | ";
-	else 
-	  std::cerr << "not first | ";
-	
-	if (header->last)
-	  std::cerr << "last page | ";
-	else
-	  std::cerr << "not last page | ";
-	
-	std::cerr << " pos: "<<header->position;
-	std::cerr << " serial: "<<header->serial;
-	std::cerr << " pageNo: "<<header->pageNo;
-	std::cerr << " checksum: "<<header->checksum<<std::endl;
-      }
-    }
-    */
     if (filewrite) {
       fwrite(codecMessage->data, 1, codecMessage->length, fileDesc);
     }
-    /*
+   
     if (stream) {
       unsigned int dataLength = codecMessage->length;
-      //TBD Error Handling
-      std::cerr << "len: "<<dataLength<<"\n";
-            send(streamDesc,&dataLength, sizeof(unsigned int), 0);
-      send(streamDesc,codecMessage->data, codecMessage->length, 0);
+
+      std::string postHeader = 
+	"POST /stream.ogg HTTP/1.0\r\n"
+	"From: streamer@qwr\r\n"
+	"User-Agent: QTWebRec/1.0\r\n"
+	"Content-Type: application/ogg\r\n"
+	"\r\n";
+      send(streamDesc, postHeader.c_str(), postHeader.length()+1, 0);      
+      send(streamDesc, codecMessage->data, codecMessage->length, 0);
       
     }
-    */
-    //    counter += codecMessage->length;
-    // actually we do not write the header to a stream
   } break;
 
   case CodecMessage::stopEncoder: {

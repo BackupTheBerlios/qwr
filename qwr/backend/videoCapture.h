@@ -1,5 +1,5 @@
 /*
- * abstract Video Capture Class 
+ * video for linux interface
  * Copyright (C) 2005-2006 Sulejman Mundzic 
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,55 +24,44 @@
 #include <string>
 
 #include"pixmapFormat.h"
-#include"videoFrame.h"
+#include"VideoFrame.h"
+
+#define READ_IO_METHOD 0
+#define MMAP_IO_METHOD 1
+#define UPTR_IO_METHOD 2
 
 class VideoCapture 
 {
-    struct FrameBuffer
-    {
-
-    };
-
  private:
-   
 
  protected:
-    char*                          devname;
+    char const*                    devname;
     int                            fd;
 
-    /* capture */
     int                            fps;
-    unsigned int                   frame_count;
-    int                            first;
-    unsigned int                   start;
-    int                            method; /* use_read */
-
     PixmapFormat                   curr_fmt;
 
+    int                            method;
+
+    unsigned int                   frame_count;
+    unsigned int                   start; /* timestamp start */
+
  public:
-    VideoCapture();
+    VideoCapture(char const* device);
     virtual ~VideoCapture();
-    virtual void   init();
-    unsigned int   timestamp();
 
-    /* open/close */
-    virtual int    open(char *device) = 0;
-    virtual int    close() = 0;
+    virtual int          open() = 0;
+    virtual int          close() = 0;
 
-    /* attributes */
-    virtual char*  get_devname();
-    virtual int    can_capture();
-    virtual void   get_device_capabilities();
+    virtual char const*  get_devname() = 0;
+    virtual void         get_device_capabilities() = 0;
     
-    
-    /* capture */
-    virtual int          setformat(PixmapFormat& in_fmt) = 0;
+    virtual int          setFormat(PixmapFormat& in_fmt) = 0;
     virtual void         setPictureParams(int colour, int brightness,
 					  int hue,    int contrast) = 0;
-    virtual int          startvideo(int fps, unsigned int buffers) = 0;
-    virtual void         stopvideo() = 0;
-    virtual VideoFrame*  nextframe() = 0;
+    virtual int          startVideo(int fps, unsigned int buffers) = 0;
+    virtual void         stopVideo() = 0;
+    virtual VideoFrame*  nextFrame() = 0;
 };
-
 
 #endif  // VIDEO_CAPTURE_H

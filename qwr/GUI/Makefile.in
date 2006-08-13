@@ -1,0 +1,66 @@
+SHELL = /bin/sh
+VPATH = @srcdir@
+
+subdirs = obj
+top_srcdir = @top_srcdir@
+srcdir = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = $(exec_prefix)/bin
+infodir = $(prefix)/info
+libdir = $(prefix)/lib/
+mandir = $(prefix)/man/man1
+incdir = $(prefix)/include
+
+CC = @CC@
+CXX = @CXX@
+UIC = @UIC@
+MOC = @MOC@
+CFLAGS = @CFLAGS@ -I../ext/ffmpeg/libavcodec -I../ext/ffmpeg/libavformat -I../ext/ffmpeg/libavutil \
+	 -I../esystem -I../backend @X_CFLAGS@
+CPPFLAGS = $(CFLAGS) @CPPFLAGS@ @ADD_CFLAGS@ @QT_CXXFLAGS@ -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DWITH_QT
+LDFLAGS = @LDFLAGS@ 
+LIBS = @LIBS@ @ADD_LIBS@ @QT_LIBS@ 
+INSTALL = @INSTALL@
+VERS = @VERSION@
+
+include GUIfiles.src
+
+UIC_SRC = $(patsubst %.ui,%.cpp,$(UIC_FORMS)) $(patsubst %.ui, moc_%.cpp, $(UIC_FORMS))
+HDR = $(patsubst %.ui, %.h, $(UIC_FORMS))
+SRC = $(ESYS_SRC) $(MAIN_SRC) $(QT_SRC) $(QT_ESYS_SRC) $(UIC_SRC) $(GUI_SOURCES)
+OBJ = $(patsubst %.cpp, %.o, $(notdir $(SRC)))
+
+VPATH = ../backend ../esystem
+
+all: QTWebRec
+
+QTWebRec: header $(OBJ)  
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) $(OBJ) qtwebrecMain.cpp -o $@ $(STATLIBS) $(LIBS)
+
+header: $(HDR)
+
+%.o: %.cpp
+	$(CXX) $(CPPFLAGS) $< -c
+
+%.h: %.ui
+	$(UIC) $< -o $@
+
+moc_%.cpp: %.h
+	$(MOC) $< -o $@
+
+%.cpp: %.ui %.h
+	$(UIC) -impl $*.h $< -o $@
+
+install: QTWebRec
+	@echo "Installing QTWebRec version $(VERS)"
+	$(INSTALL) -m755 QTWebRec $(bindir)/
+
+clean:
+	@rm -f *.o $(UIC_SRC) $(HDR) *~ *.d QTWebRec
+
+distclean: clean
+	@rm -r Makefile
+
+.phony=all header install clean distclean
+

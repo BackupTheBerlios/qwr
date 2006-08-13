@@ -43,66 +43,58 @@ class v4lCapture : public VideoCapture
 
     /* device descriptions */
     struct video_capability        capability;
-    struct video_channel           *channels;
-    struct video_tuner             tuner;
-    struct video_audio             audio;
     struct video_picture           pict;
 
-
-
-    /* capture to mmap()'ed buffers */
+    /* capture using mmap() to mapped buffers */
     struct video_mbuf              mbuf;
-    unsigned char                  *mmap;
+    unsigned char*                 mmap;
     unsigned int                   nbuf;
-    unsigned int                   queue;
-    unsigned int                   waiton;
+    unsigned int                   queued;
+    unsigned int                   dequeued;
 
-    int                            probe[19]; //VIDEO_FMT_COUNT
-    struct video_mmap              *buf_v4l;
-    struct VideoFrame              *buf_me;
+    struct video_mmap*             buf_v4l;
+    struct VideoFrame*             buf_me;
 
-
-    /* capture via read() */
-    PixmapFormat                   rd_fmt;
-    struct video_window            rd_win;
+    /* capture using read() */
+    struct video_window            read_win;
 
  protected:
     static std::map<PixmapFormat::PixelFormat, unsigned short> v4l_pix_id;
     static std::map<unsigned short, PixmapFormat::PixelFormat> ptt_pix_id;
     void   init_palette_table(void);
 
+
     int    xioctl(int fd, int cmd, void *arg);
     bool   is_format_supported(unsigned int fmtid);
-    int    queue_buffer(void);
-    void   queue_all(void);
 
-    int    mm_waiton(void);
-    void   mm_clear(void);
+    int    map_memory_buffers(void);
+    int    queue_mmap_buffer(void);
+    int    dequeue_mmap_buffer(void);
+    void   clear_mmap_buffers(void);
 
-    int    mm_setparams(PixmapFormat& fmt);
 
  public:
-    v4lCapture();
+    v4lCapture(char const* device = "dev/video0");
     ~v4lCapture();
-    virtual void   init();
 
     /* open/close */
-    virtual int    open(char *device);
+    virtual int    open();
     virtual int    close();
 
     /* attributes */
-    virtual char*  get_devname();
-    virtual int    can_capture();
-    virtual void   get_device_capabilities();
+    virtual char const*  get_devname();
+    virtual void         get_device_capabilities();
     
     
     /* capture */
-    virtual int          setformat(PixmapFormat& in_fmt);
+    virtual int          setFormat(PixmapFormat& in_fmt);
     virtual void         setPictureParams(int colour, int brightness,
 					  int hue,    int contrast);
-    virtual int          startvideo(int fps, unsigned int buffers);
-    virtual void         stopvideo();
-    virtual VideoFrame*  nextframe(); /* video frame */
+    virtual int          startVideo(int fps, unsigned int buffers);
+    virtual void         stopVideo();
+    virtual VideoFrame*  nextFrame();
+
+    unsigned int v4lCapture::timestamp();
 };
 
 

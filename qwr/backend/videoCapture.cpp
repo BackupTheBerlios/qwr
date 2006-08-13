@@ -1,5 +1,5 @@
 /*
- * abstract Video Capture Class 
+ * video for linux interface
  * Copyright (C) 2005-2006 Sulejman Mundzic 
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,59 +18,29 @@
  *
  */
 
+#include <iostream>
+
 #include"videoCapture.h"
 
-
-VideoCapture::VideoCapture()
-    : fd(0),
-      method(1),
-      curr_fmt(PixmapFormat::PIXFMT_YUV420P, 0, 0)
+VideoCapture::VideoCapture(char const* device)
+    : devname(device),
+      fd(0),
+      curr_fmt(PixmapFormat::PIXFMT_YUV420P, 0, 0),
+      method(READ_IO_METHOD)
 {
-    fprintf(stderr, "VideoCapture::VideoCapture()\n");
-    devname = "/dev/video0";
+    std::cerr<<"VideoCapture::VideoCapture()\n";
 }
 
 
 VideoCapture::~VideoCapture()
 {
-    fprintf(stderr, "VideoCapture::~VideoCapture()\n");
-
-   
-}
-
-void VideoCapture::init()
-{
-    fprintf(stderr, "VideoCapture::init()\n");
-    get_device_capabilities();
-}
-
-void VideoCapture::get_device_capabilities()
-{
-
-}
-
-char* VideoCapture::get_devname()
-{
-    fprintf(stderr, "VideoCapture::get_devname()\n");
-    return devname; 
-}
-
-int VideoCapture::can_capture()
-{
-    fprintf(stderr, "VideoCapture::can_capture()\n");
-    return 0;
+    std::cerr<<"VideoCapture::~VideoCapture()\n";  
 }
 
 
 
 
-#include <sys/time.h>
-unsigned int VideoCapture::timestamp()
-{
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    return ((tv.tv_sec * 1000000 + tv.tv_usec) / 1000);
-}
+
 
 
 

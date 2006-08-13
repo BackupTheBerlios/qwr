@@ -1,7 +1,12 @@
 TODO:
 
+version 0.0.2:
+- v4linux2 capture does not close the camera correctly
+- test streaming
+- unresolved bugs from 0.0.1
+
 version 0.0.1:
-- get configure
+- get configure - done - JS
 - play back of recorded files
 - support for different webcam resolutions.
 - do not use ffmpeg if ogg/theora/vorbis is the only codec when installing

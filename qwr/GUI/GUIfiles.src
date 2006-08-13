@@ -1,0 +1,16 @@
+ESYS_SRC    = event.cpp connection.cpp timev.cpp scheduler.cpp simpleConnection.cpp \
+              task.cpp 
+
+MAIN_SRC    = pixmapFormat.cpp videoCapture.cpp v4l2Capture.cpp v4lCapture.cpp \
+	      webrecBackend.cpp videoDisplayMsg.cpp jackAudioDevice.cpp \
+	      theoraCodec.cpp convert.cpp codecInterface.cpp ringbuffer.cpp
+
+QT_SRC      = videowidget.cpp webrec.cpp moc_videowidget.cpp moc_webrec.cpp 
+
+QT_ESYS_SRC = qTask.cpp qDescConnection.cpp qThreadConnection.cpp
+
+UIC_FORMS   = qtwebrec.ui 	
+
+STATLIBS    = ../ext/ffmpeg/libavformat/libavformat.a \
+	      ../ext/ffmpeg/libavcodec/libavcodec.a  \
+              ../ext/ffmpeg/libavutil/libavutil.a 
